@@ -1,0 +1,7 @@
+name: astrbot_plugin_hun_utility_balance
+display_name: HNU水电费查询
+desc: 海南大学水电费查询与低余额提醒插件
+version: v0.1.1
+author: Railgun19457
+repo: https://github.com/Railgun19457/astrbot_plugin_hun_utility_balance
+astrbot_version: ">=4.10.4"
