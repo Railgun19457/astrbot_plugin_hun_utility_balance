@@ -8,7 +8,7 @@ from typing import Any
 
 import httpx
 
-from astrbot.api import AstrBotConfig, logger
+from astrbot.api import AstrBotConfig, llm_tool, logger
 from astrbot.api.event import AstrMessageEvent, MessageChain, filter
 from astrbot.api.message_components import Plain
 from astrbot.api.star import Context, Star
@@ -82,6 +82,21 @@ class HNUUtilityBalancePlugin(Star):
 		self._active_alert_keys: set[str] = set()
 		self._missing_openid_warned = False
 		self._invalid_reminders_warned = False
+
+	@llm_tool("query_hnu_utility_balance")
+	async def query_hnu_utility_balance(self, _event: AstrMessageEvent) -> str:
+		"""Query HNU utility balance and return hot water, lighting, air conditioner, and water meter balances."""
+
+		openid = self._get_openid()
+		if not openid:
+			return "未配置 openid，无法查询水电费余额。"
+
+		result, err = await self._query(openid)
+		if err:
+			return f"查询水电费余额失败：{err}"
+
+		self._update_next_auto_check_time(notify=True)
+		return self._format_query_reply(result)
 
 	@filter.command("水电查询")
 	async def query_balance(self, event: AstrMessageEvent):

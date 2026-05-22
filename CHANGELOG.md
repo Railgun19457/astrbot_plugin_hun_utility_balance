@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.2
+
+- 新增 `query_hnu_utility_balance` LLM 工具，用于查询水电费余额。
+
 ## v0.1.1
 
 - 仅保留 `/水电查询` 一个指令。
