@@ -22,6 +22,12 @@
 		},
 		"default": 120
 	},
+	"enable_llm_tool": {
+		"description": "启用 LLM 工具",
+		"hint": "开启后会注册 query_hnu_utility_balance 工具，允许模型主动查询水电费余额。",
+		"type": "bool",
+		"default": true
+	},
 	"query_display_items": {
 		"description": "查询返回显示项",
 		"hint": "选择 /水电查询 返回中需要显示的条目。未勾选的条目不会显示。",
@@ -50,13 +56,13 @@
 	},
 	"reminders": {
 		"description": "低余额提醒列表",
-		"hint": "可添加多个提醒。每项包含检测费用种类、提醒阈值和提醒会话 UMO。UMO 可在目标会话发送 /sid 获取。",
+		"hint": "可添加多个提醒。每项包含检测费用种类、提醒阈值和提醒会话 UMO 列表。UMO 可在目标会话发送 /sid 获取。",
 		"type": "template_list",
 		"default": [],
 		"templates": {
 			"balance_reminder": {
 				"name": "余额提醒",
-				"hint": "当指定费用种类余额小于或等于阈值时，向指定 UMO 发送提醒。",
+				"hint": "当指定费用种类余额小于或等于阈值时，向指定 UMO 列表发送提醒。",
 				"display_item": "session_umo",
 				"hide_hint_in_list": true,
 				"items": {
@@ -79,10 +85,13 @@
 						"default": "10"
 					},
 					"session_umo": {
-						"description": "提醒会话 UMO",
-						"hint": "目标提醒会话的 Unified Message Origin，例如 aiocqhttp:GroupMessage:123456。可在目标会话发送 /sid 获取。",
-						"type": "string",
-						"default": ""
+						"description": "提醒会话 UMO 列表",
+						"hint": "目标提醒会话的 Unified Message Origin 列表，例如 aiocqhttp:GroupMessage:123456。可在目标会话发送 /sid 获取。",
+						"type": "list",
+						"items": {
+							"type": "string"
+						},
+						"default": []
 					}
 				}
 			}

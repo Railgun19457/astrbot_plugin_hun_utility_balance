@@ -3,6 +3,8 @@
 ## v0.1.3
 
 - 将 `query_hnu_utility_balance` LLM 工具改为 `FunctionTool` 类形式注册，保持与 `im_profile` 插件一致。
+- 新增 `enable_llm_tool` 配置开关，可控制是否注册 LLM 工具。
+- 将提醒配置中的 `session_umo` 改为列表类型，支持同一规则发送到多个会话。
 
 ## v0.1.2
 

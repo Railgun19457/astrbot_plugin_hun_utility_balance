@@ -42,7 +42,7 @@ class Reminder:
     fee_type: str
     fee_key: str
     threshold: float
-    session_umo: str
+    session_umos: tuple[str, ...]
 
 
 class HNUUtilityBalancePlugin(Star):
@@ -135,6 +135,10 @@ class HNUUtilityBalancePlugin(Star):
         """按 im_profile 插件风格注册函数工具。"""
 
         self._unregister_llm_tools()
+        if not self._llm_tool_enabled():
+            logger.info("[HNUUtilityBalance] 函数工具未启用，跳过注册。")
+            return
+
         tools = build_llm_tools(self)
         if tools:
             self.context.add_llm_tools(*tools)
@@ -269,8 +273,9 @@ class HNUUtilityBalancePlugin(Star):
                     continue
 
                 message = self._format_alert_message(result, reminder, amount)
-                if await self._send_to_umo(reminder.session_umo, message):
-                    sent += 1
+                success_count = await self._send_to_umos(reminder.session_umos, message)
+                if success_count > 0:
+                    sent += success_count
                     self._active_alert_keys.add(alert_key)
             else:
                 self._active_alert_keys.discard(alert_key)
@@ -281,6 +286,13 @@ class HNUUtilityBalancePlugin(Star):
                 f"已发送 {sent} 条，跳过 {skipped} 个。"
             )
         return ""
+
+    async def _send_to_umos(self, umos: tuple[str, ...], text: str) -> int:
+        sent = 0
+        for umo in umos:
+            if await self._send_to_umo(umo, text):
+                sent += 1
+        return sent
 
     async def _send_to_umo(self, umo: str, text: str) -> bool:
         try:
@@ -439,17 +451,17 @@ class HNUUtilityBalancePlugin(Star):
                 continue
 
             fee_type = str(item.get("fee_type") or "").strip()
-            session_umo = str(item.get("session_umo") or "").strip()
+            session_umos = self._normalize_session_umos(item.get("session_umo"))
             threshold = self._safe_float(item.get("threshold"), default=None)
             fee_key = self._normalize_fee_type(fee_type)
 
-            if not fee_key or threshold is None or not session_umo:
+            if not fee_key or threshold is None or not session_umos:
                 logger.warning(
                     "[HNUUtilityBalance] 第 %s 个提醒配置无效：fee_type=%r, threshold=%r, session_umo=%r",
                     index + 1,
                     fee_type,
                     item.get("threshold"),
-                    session_umo,
+                    item.get("session_umo"),
                 )
                 continue
 
@@ -459,7 +471,7 @@ class HNUUtilityBalancePlugin(Star):
                     fee_type=fee_type,
                     fee_key=fee_key,
                     threshold=threshold,
-                    session_umo=session_umo,
+                    session_umos=session_umos,
                 )
             )
         return reminders
@@ -563,12 +575,34 @@ class HNUUtilityBalancePlugin(Star):
 
     def _build_alert_key(self, reminder: Reminder) -> str:
         return (
-            f"{reminder.index}:{reminder.session_umo}:"
+            f"{reminder.index}:{','.join(reminder.session_umos)}:"
             f"{reminder.fee_key}:{reminder.threshold}"
         )
 
+    @staticmethod
+    def _normalize_session_umos(value: Any) -> tuple[str, ...]:
+        if isinstance(value, list):
+            raw_items = value
+        elif value is None:
+            raw_items = []
+        else:
+            raw_items = [value]
+
+        umos: list[str] = []
+        seen: set[str] = set()
+        for item in raw_items:
+            umo = str(item or "").strip()
+            if not umo or umo in seen:
+                continue
+            seen.add(umo)
+            umos.append(umo)
+        return tuple(umos)
+
     def _auto_check_enabled(self) -> bool:
         return bool(self.config.get("enable_auto_check", True))
+
+    def _llm_tool_enabled(self) -> bool:
+        return bool(self.config.get("enable_llm_tool", True))
 
     def _get_openid(self) -> str:
         return str(self.config.get("openid", "") or "").strip()
