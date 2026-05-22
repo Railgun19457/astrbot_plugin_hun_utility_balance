@@ -1,7 +1,7 @@
 name: astrbot_plugin_hun_utility_balance
 display_name: HNU水电费查询
 desc: 海大售电水电费查询与低余额提醒插件
-version: v0.1.2
+version: v0.1.3
 author: Railgun19457
 repo: https://github.com/Railgun19457/astrbot_plugin_hun_utility_balance
 astrbot_version: ">=4.10.4"

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.3
+
+- 将 `query_hnu_utility_balance` LLM 工具改为 `FunctionTool` 类形式注册，保持与 `im_profile` 插件一致。
+
 ## v0.1.2
 
 - 新增 `query_hnu_utility_balance` LLM 工具，用于查询水电费余额。
